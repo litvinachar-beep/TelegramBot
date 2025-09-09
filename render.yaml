@@ -1,0 +1,16 @@
+services:
+  - type: worker
+    name: telegram-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    plan: free
+    envVars:
+      - key: TOKEN
+        sync: false
+      - key: ADMIN_ID
+        sync: false
+    disks:
+      - name: data
+        mountPath: /data
+        sizeGB: 1
