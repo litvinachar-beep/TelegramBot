@@ -21,7 +21,7 @@ GOOGLE_SA_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# === Google Sheets ===
+# === Google Sheetsss ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 _gs_client = None
 _ws_workers = None
@@ -142,7 +142,7 @@ async def employer_start(call: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.employer_name)
     await call.answer()
 
-# --- АНКЕТА ДЛЯ ПРАЦІВНИКА ---
+# --- АНКЕТА ДЛЯ ПРАЦІВНИКАА ---
 @dp.message(Form.name)
 async def process_name(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
@@ -162,10 +162,10 @@ async def process_city(message: types.Message, state: FSMContext):
     await message.answer("Твій номер телефону (щоб ми могли з тобою зв'язатися):")
     await state.set_state(Form.phone)
 
-    @dp.message(Form.phone)
+
+@dp.message(Form.phone)
 async def process_phone(message: types.Message, state: FSMContext):
-   data = await state.update_data(phone=message.text)
-    
+    data = await state.update_data(phone=message.text)  
 
     add_worker_sheet(
         {
