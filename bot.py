@@ -59,12 +59,12 @@ def init_sheets():
     _ws_workers = _get_or_create_ws(
         sh,
         "Workers",
-        ["ID", "Name", "Phone", "Experience", "City", "Timestamp"],
+        ["ID", "Name", "Experience", "City", "Phone", "Timestamp"],
     )
     _ws_employers = _get_or_create_ws(
         sh,
         "Employers",
-        ["ID", "Position", "Candidate Experience", "City", "Phone", "Timestamp"],
+        ["ID", "Name", "Position", "Candidate Experience", "City", "Phone", "Timestamp"],
     )
 
 def add_worker_sheet(worker: dict):
@@ -74,9 +74,9 @@ def add_worker_sheet(worker: dict):
         [
             worker["id"],
             worker["name"],
-            worker["phone"],
             worker["experience"],
             worker["city"],
+            worker["phone"],
             datetime.now(timezone.utc).isoformat(),
         ],
         value_input_option="USER_ENTERED",
@@ -88,6 +88,7 @@ def add_employer_sheet(employer: dict):
     _ws_employers.append_row(
         [
             employer["id"],
+            employer["employer_name"],
             employer["position"],
             employer["candidate_experience"],
             employer["city"],
@@ -145,16 +146,8 @@ async def employer_start(call: types.CallbackQuery, state: FSMContext):
 @dp.message(Form.name)
 async def process_name(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
-    await message.answer("Твій номер телефону (щоб ми могли з тобою зв'язатися):")
-    await state.set_state(Form.phone)
-
-@dp.message(Form.phone)
-async def process_phone(message: types.Message, state: FSMContext):
-    await state.update_data(phone=message.text)
-    await message.answer(
-        "Який у тебе досвід роботи у цій сфері?\n"
-        "(наприклад: «без досвіду», «1-3 роки», «більше 3 років»)"
-    )
+    await message.answer("Який у тебе досвід роботи у цій сфері?\n"
+        "(наприклад: «без досвіду», «1-3 роки», «більше 3 років»)")
     await state.set_state(Form.experience)
 
 @dp.message(Form.experience)
@@ -165,15 +158,22 @@ async def process_experience(message: types.Message, state: FSMContext):
 
 @dp.message(Form.city)
 async def process_city(message: types.Message, state: FSMContext):
-    data = await state.update_data(city=message.text)
+    await state.update_data(city=message.text)
+    await message.answer("Твій номер телефону (щоб ми могли з тобою зв'язатися):")
+    await state.set_state(Form.phone)
+
+    @dp.message(Form.phone)
+async def process_phone(message: types.Message, state: FSMContext):
+   data = await state.update_data(phone=message.text)
+    
 
     add_worker_sheet(
         {
             "id": message.from_user.id,
             "name": data["name"],
-            "phone": data["phone"],
             "experience": data["experience"],
             "city": data["city"],
+            "phone": data["phone"],
         }
     )
 
@@ -185,9 +185,9 @@ async def process_city(message: types.Message, state: FSMContext):
         f"✅ Дякуємо за анкету! Твоя анкета успішно збережена!\n"
         f"Ми скоро з тобою зв’яжемося 📞\n\n"
         f"👤 Ім'я: {data['name']}\n"
-        f"📞 Телефон: {data['phone']}\n"
         f"💼 Досвід: {data['experience']}\n"
-        f"📍 Місто: {data['city']}\n\n"
+        f"📍 Місто: {data['city']}\n"
+        f"📞 Телефон: {data['phone']}\n\n"
         f"Дякуємо, що приєднався до нашої команди 💪\n"
     )
     await message.answer(result, reply_markup=keyboard)
@@ -225,6 +225,7 @@ async def process_employer_phone(message: types.Message, state: FSMContext):
     add_employer_sheet(
         {
             "id": message.from_user.id,
+            "employer_name": data["employer_name"],
             "position": data["position"],
             "candidate_experience": data["candidate_experience"],
             "city": data["employer_city"],
@@ -239,6 +240,7 @@ async def process_employer_phone(message: types.Message, state: FSMContext):
     result = (
         f"✅ Дякуємо за анкету! Твоя анкета успішно збережена!\n"
         f"Ми скоро з тобою зв’яжемося 📞\n\n"
+        f"👷 Ім'я: {data['employer_name']}\n"
         f"👷 Позиція: {data['position']}\n"
         f"📊 Мінімальний досвід: {data['candidate_experience']}\n"
         f"📍 Місто: {data['employer_city']}\n"
